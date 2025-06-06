@@ -11,11 +11,8 @@ service AuthService {
   // Авторизация и получение токенов
   rpc Login(LoginRequest) returns (LoginResponse);
 
-  // Обновление access и refresh токенов
-  rpc RefreshTokens(RefreshRequest) returns (RefreshResponse);
-
-  // Проверка валидности access токена
-  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+  // Проверка токенов
+  rpc CheckToken (CheckTokenRequest) returns (CheckTokenResponse);
 }
 
 // --- Регистрация ---
@@ -39,23 +36,12 @@ message LoginResponse {
   string refresh_token = 2;
 }
 
-// --- Обновление токенов ---
-message RefreshRequest {
-  string refresh_token = 1;
+// --- Проверка токенов ---
+message CheckTokenRequest {
+  string token = 1;
 }
 
-message RefreshResponse {
-  string access_token = 1;
-  string refresh_token = 2;
-}
-
-// --- Проверка токена (опционально) ---
-message ValidateTokenRequest {
-  string access_token = 1;
-}
-
-message ValidateTokenResponse {
-  bool valid = 1;
-  string user_id = 2;
-  string username = 3;
+message CheckTokenResponse {
+  string access = 1;
+  string refresh = 2;
 }
