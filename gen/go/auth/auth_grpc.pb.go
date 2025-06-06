@@ -4,8 +4,6 @@
 // - protoc             v5.29.3
 // source: auth/auth.proto
 
-// Пакет авторизации
-
 package authv1
 
 import (
@@ -21,20 +19,24 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthService_Register_FullMethodName = "/auth.AuthService/Register"
-	AuthService_Login_FullMethodName    = "/auth.AuthService/Login"
+	AuthService_Register_FullMethodName      = "/auth.AuthService/Register"
+	AuthService_Login_FullMethodName         = "/auth.AuthService/Login"
+	AuthService_RefreshTokens_FullMethodName = "/auth.AuthService/RefreshTokens"
+	AuthService_ValidateToken_FullMethodName = "/auth.AuthService/ValidateToken"
 )
 
 // AuthServiceClient is the client API for AuthService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-//
-// Сервис авторизации
 type AuthServiceClient interface {
-	// Метод регистрации
+	// Регистрация нового пользователя
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
-	// Метод авторизации
+	// Авторизация и получение токенов
 	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	// Обновление access и refresh токенов
+	RefreshTokens(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*RefreshResponse, error)
+	// Проверка валидности access токена
+	ValidateToken(ctx context.Context, in *ValidateTokenRequest, opts ...grpc.CallOption) (*ValidateTokenResponse, error)
 }
 
 type authServiceClient struct {
@@ -65,16 +67,38 @@ func (c *authServiceClient) Login(ctx context.Context, in *LoginRequest, opts ..
 	return out, nil
 }
 
+func (c *authServiceClient) RefreshTokens(ctx context.Context, in *RefreshRequest, opts ...grpc.CallOption) (*RefreshResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RefreshResponse)
+	err := c.cc.Invoke(ctx, AuthService_RefreshTokens_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) ValidateToken(ctx context.Context, in *ValidateTokenRequest, opts ...grpc.CallOption) (*ValidateTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateTokenResponse)
+	err := c.cc.Invoke(ctx, AuthService_ValidateToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
-//
-// Сервис авторизации
 type AuthServiceServer interface {
-	// Метод регистрации
+	// Регистрация нового пользователя
 	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
-	// Метод авторизации
+	// Авторизация и получение токенов
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+	// Обновление access и refresh токенов
+	RefreshTokens(context.Context, *RefreshRequest) (*RefreshResponse, error)
+	// Проверка валидности access токена
+	ValidateToken(context.Context, *ValidateTokenRequest) (*ValidateTokenResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -90,6 +114,12 @@ func (UnimplementedAuthServiceServer) Register(context.Context, *RegisterRequest
 }
 func (UnimplementedAuthServiceServer) Login(context.Context, *LoginRequest) (*LoginResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
+}
+func (UnimplementedAuthServiceServer) RefreshTokens(context.Context, *RefreshRequest) (*RefreshResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RefreshTokens not implemented")
+}
+func (UnimplementedAuthServiceServer) ValidateToken(context.Context, *ValidateTokenRequest) (*ValidateTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateToken not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -148,6 +178,42 @@ func _AuthService_Login_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_RefreshTokens_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefreshRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).RefreshTokens(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_RefreshTokens_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).RefreshTokens(ctx, req.(*RefreshRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_ValidateToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ValidateToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_ValidateToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ValidateToken(ctx, req.(*ValidateTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -162,6 +228,14 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Login",
 			Handler:    _AuthService_Login_Handler,
+		},
+		{
+			MethodName: "RefreshTokens",
+			Handler:    _AuthService_RefreshTokens_Handler,
+		},
+		{
+			MethodName: "ValidateToken",
+			Handler:    _AuthService_ValidateToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

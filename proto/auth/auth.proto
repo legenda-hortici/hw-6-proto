@@ -1,36 +1,61 @@
 syntax = "proto3";
 
-// Пакет авторизации
 package auth;
 
 option go_package = "maxim.auth.v1;authv1";
 
-// Сервис авторизации
 service AuthService {
-  // Метод регистрации
+  // Регистрация нового пользователя
   rpc Register(RegisterRequest) returns (RegisterResponse);
-  // Метод авторизации
+
+  // Авторизация и получение токенов
   rpc Login(LoginRequest) returns (LoginResponse);
+
+  // Обновление access и refresh токенов
+  rpc RefreshTokens(RefreshRequest) returns (RefreshResponse);
+
+  // Проверка валидности access токена
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
 }
 
-// Сообщение запроса на регистрацию
+// --- Регистрация ---
 message RegisterRequest {
   string username = 1;
   string password = 2;
 }
 
-// Ответное сообщение на регистрацию
 message RegisterResponse {
   string message = 1;
 }
 
-// Запрос на авторизацию
+// --- Авторизация ---
 message LoginRequest {
   string username = 1;
   string password = 2;
 }
 
-// Ответ на запрос авторизации
 message LoginResponse {
-  string token = 1;
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+// --- Обновление токенов ---
+message RefreshRequest {
+  string refresh_token = 1;
+}
+
+message RefreshResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+}
+
+// --- Проверка токена (опционально) ---
+message ValidateTokenRequest {
+  string access_token = 1;
+}
+
+message ValidateTokenResponse {
+  bool valid = 1;
+  string user_id = 2;
+  string username = 3;
 }
