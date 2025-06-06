@@ -8,6 +8,7 @@ service AuthService {
   // Регистрация нового пользователя
   rpc Register(RegisterRequest) returns (RegisterResponse);
 
+
   // Авторизация и получение токенов
   rpc Login(LoginRequest) returns (LoginResponse);
 
