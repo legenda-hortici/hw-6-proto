@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth;
 
-option go_package = "maxim.auth.v1;authv1";
+option go_package = "maxim.auth.v2;authv2";
 
 service AuthService {
   // Регистрация нового пользователя
